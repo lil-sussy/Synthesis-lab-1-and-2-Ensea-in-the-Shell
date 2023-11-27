@@ -11,6 +11,7 @@
 #define MESSAGE "Welcome to ENSEA Tiny Shell.\nType 'exit' to quit.\n"
 #define TERMINAL_TAG "enseash % "
 #define BUFFER_LEN 100
+#define INT2POINTER(a) ((char*)(intptr_t)(a))
 
 void exitWithError(char* message) {
     perror(message);
@@ -63,13 +64,23 @@ int main(int argc, char* argv[]) {
             pid = fork();
             if (pid > 0){
                 wait(&status);
+                if(WIFEXITED(status)) {
+                    
+                }
             }
             else if (pid == 0){
-                if (execlp(buffer, buffer, (char*)NULL) == -1) {
-                    perror("Command failed\n");
+                int exitValue = execlp(buffer, buffer, (char*)NULL);
+                if (exitValue == -1) {
+                    writeSTDout("enseash ");
+                    writeSTDout("[exit:-1]");
+                    writeSTDout(" % ");
                     exit(EXIT_FAILURE);
                 } else {
-                    writeSTDout(TERMINAL_TAG);
+                    writeSTDout("enseash ");
+                    char idk[10];
+                    sprintf(idk, "[exit:%d]", exitValue);
+                    writeSTDout(idk);
+                    writeSTDout(" % ");
                     exit(EXIT_FAILURE);
                 }
             } else if(pid == -1){
