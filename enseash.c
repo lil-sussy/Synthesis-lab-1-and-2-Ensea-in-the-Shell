@@ -5,9 +5,12 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdbool.h> 
+#include <time.h>
+#include <sys/wait.h>
 
 #define MESSAGE "Welcome to ENSEA Tiny Shell.\nType 'exit' to quit.\n"
 #define TERMINAL_TAG "enseash % "
+#define BUFFER_LEN 100
 
 void exitWithError(char* message) {
     perror(message);
@@ -20,12 +23,56 @@ void writeSTDout(char* message) {
     }
 }
 
+void readSTDin(char* buffer) {
+    ssize_t readed;
+    if ((readed = read(STDIN_FILENO, buffer, BUFFER_LEN)) == -1) {
+        exitWithError("stdin: ");
+    }
+    buffer[readed-1] = '\0';
+}
+
+void split(char* in, char** out){
+    char readed;
+    int spaceCounter = 0;
+    char word[100];
+    char counter = 0;
+    do{
+        readed = in[counter];
+        //if (readed == ' '){
+
+        //}
+    } while (readed != '\0');
+}
+
 int main(int argc, char* argv[]) {
     bool control = true;
-    writeSTDout(MESSAGE);
+    char buffer[BUFFER_LEN];
+    char** toTerminal;
+    int bufferReaded;
+    int status;
     do {
         writeSTDout(TERMINAL_TAG);
-        control = false;
+        readSTDin(buffer);
+        if (strcmp("exit\n", buffer) == 0) {
+            writeSTDout("you typed exit\n");
+            exit(EXIT_SUCCESS);
+        } else {
+            //split(buffer, toTerminal);
+            pid_t pid;
+            pid = fork();
+            if (pid > 0){
+                wait(&status);
+            }
+            else if (pid == 0){
+                if (execlp(buffer, buffer, (char*)NULL) == -1) {
+                    perror("Command failed\n");
+                } else {
+                    writeSTDout(TERMINAL_TAG);
+                }
+            } else if(pid == -1){
+                perror("Command failed\n");
+            }
+        }
     } while(control);
-    exit(EXIT_SUCCESS);
+    exit(EXIT_FAILURE);
 }
