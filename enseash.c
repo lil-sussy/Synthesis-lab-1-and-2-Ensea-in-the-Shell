@@ -2,13 +2,10 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <time.h>
-#include <sys/sysmacros.h>
 #include <string.h>
 
-#define MESSAGE "Welcome to ENSEA Tiny Shell.\nType 'exit' to quit."
+#define MESSAGE "Welcome to ENSEA Tiny Shell.\nType 'exit' to quit.\n"
 
 void exitWithError(char* message) {
     perror(message);
@@ -23,6 +20,6 @@ void writeSTDout(char* message) {
 
 int main(int argc, char* argv[]) {
     writeSTDout(MESSAGE);
-
+    
     exit(EXIT_SUCCESS);
 }
