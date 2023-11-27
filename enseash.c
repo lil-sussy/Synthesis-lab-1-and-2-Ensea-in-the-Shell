@@ -15,10 +15,14 @@ void exitWithError(char* message) {
     exit(EXIT_FAILURE);
 }
 
-int main(int argc, char* argv[]) {
-    if (write(STDOUT_FILENO, MESSAGE, strlen(MESSAGE)) == -1) {
+void writeSTDout(char* message) {
+    if (write(STDOUT_FILENO, message, strlen(message)) == -1) {
         exitWithError("stdout: ");
     }
+}
+
+int main(int argc, char* argv[]) {
+    writeSTDout(MESSAGE);
 
     exit(EXIT_SUCCESS);
 }
