@@ -4,8 +4,10 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <string.h>
+#include <stdbool.h> 
 
 #define MESSAGE "Welcome to ENSEA Tiny Shell.\nType 'exit' to quit.\n"
+#define TERMINAL_TAG "enseash % "
 
 void exitWithError(char* message) {
     perror(message);
@@ -19,7 +21,11 @@ void writeSTDout(char* message) {
 }
 
 int main(int argc, char* argv[]) {
+    bool control = true;
     writeSTDout(MESSAGE);
-    
+    do {
+        writeSTDout(TERMINAL_TAG);
+        control = false;
+    } while(control);
     exit(EXIT_SUCCESS);
 }
