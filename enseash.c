@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     do {
         writeSTDout(TERMINAL_TAG);
         readSTDin(buffer);
-        if (strcmp("exit\n", buffer) == 0) {
+        if (strcmp("exit", buffer) == 0) {
             writeSTDout("you typed exit\n");
             exit(EXIT_SUCCESS);
         } else {
