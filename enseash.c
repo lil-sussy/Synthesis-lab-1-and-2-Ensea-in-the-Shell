@@ -23,12 +23,13 @@ void writeSTDout(char* message) {
     }
 }
 
-void readSTDin(char* buffer) {
+ssize_t readSTDin(char* buffer) {
     ssize_t readed;
     if ((readed = read(STDIN_FILENO, buffer, BUFFER_LEN)) == -1) {
         exitWithError("stdin: ");
     }
     buffer[readed-1] = '\0';
+    return readed;
 }
 
 void split(char* in, char** out){
@@ -52,11 +53,11 @@ int main(int argc, char* argv[]) {
     int status;
     do {
         writeSTDout(TERMINAL_TAG);
-        readSTDin(buffer);
-        if (strcmp("exit", buffer) == 0) {
-            writeSTDout("you typed exit\n");
+        ssize_t read = readSTDin(buffer);
+        if ((strcmp("exit", buffer) == 0) || read == 0){
+            writeSTDout("Bye\n");
             exit(EXIT_SUCCESS);
-        } else {
+        }else {
             //split(buffer, toTerminal);
             pid_t pid;
             pid = fork();
@@ -66,11 +67,14 @@ int main(int argc, char* argv[]) {
             else if (pid == 0){
                 if (execlp(buffer, buffer, (char*)NULL) == -1) {
                     perror("Command failed\n");
+                    exit(EXIT_FAILURE);
                 } else {
                     writeSTDout(TERMINAL_TAG);
+                    exit(EXIT_FAILURE);
                 }
             } else if(pid == -1){
                 perror("Command failed\n");
+                exit(EXIT_FAILURE);
             }
         }
     } while(control);
