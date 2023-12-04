@@ -12,7 +12,6 @@
 #define TERMINAL_TAG "enseash % "
 #define BUFFER_LEN 1000
 #define TOKEN_LEN 100
-#define INT2POINTER(a) ((char*)(intptr_t)(a))
 
 void exitWithError(char* message) {
     perror(message);
@@ -41,6 +40,7 @@ void split(char* in, char** out){
     char* inCopy = malloc(100);
     strcpy(inCopy, in);
 
+    //here we separete the input in tokens that we put in out
     tokenPointer = strtok(inCopy, delimiter);
     while(tokenPointer != NULL) {
         out[counter] = tokenPointer;
@@ -54,6 +54,8 @@ void displayStatus(int status, struct timespec start, struct timespec end) {
     double deltaTimeMillis;
     deltaTimeMillis = (end.tv_sec - start.tv_sec) * 1000.0;
     deltaTimeMillis += (end.tv_nsec - start.tv_nsec) / 1000000.0;
+
+    //here we search if it exited or signaled something, and print it
     if (WIFEXITED(status)) {
         char toprint[100];
         sprintf(toprint, "enseash [exit:%d|%.2fms] %% ", WEXITSTATUS(status), deltaTimeMillis);
@@ -67,9 +69,9 @@ void displayStatus(int status, struct timespec start, struct timespec end) {
 
 int main(int argc, char* argv[]) {
     struct timespec start, end;
-    char buffer[BUFFER_LEN];                        //the buffer of the mainloop
+    char buffer[BUFFER_LEN];                        
     pid_t pid;
-    int status;                                     //status for the wait
+    int status;                                     
     char** tokens[TOKEN_LEN];
 
     writeSTDout("enseash % ");
