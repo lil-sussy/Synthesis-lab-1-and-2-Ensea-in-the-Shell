@@ -52,6 +52,8 @@ int main(int argc, char* argv[]) {
     char** toTerminal;
     int bufferReaded;
     int status;
+    int exit;
+    bool isReturn;
     do {
         writeSTDout(TERMINAL_TAG);
         ssize_t read = readSTDin(buffer);
@@ -65,7 +67,12 @@ int main(int argc, char* argv[]) {
             if (pid > 0){
                 wait(&status);
                 if(WIFEXITED(status)) {
-                    
+                    exit = WEXITSTATUS(status);
+                    isReturn = 1;
+                }
+                else if((WIFSIGNALED( status ))){
+                    exit = WTERMSIG(status);
+                    isReturn = 0;
                 }
             }
             else if (pid == 0){
