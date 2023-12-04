@@ -53,11 +53,12 @@ void split(char* in, char** out){
 }
 
 int main(int argc, char* argv[]) {
+    struct timespec start, end;
+    double elapsed;
     char buffer[BUFFER_LEN];                        //the buffer of the mainloop
     pid_t pid;
-    int exitValue;                                  //the value of the return of signal
     int status;                                     //status for the wait
-    char** toTerminal;                              //buffer tokenized
+    int deltaTimeMillis;
     writeSTDout("enseash % ");
     while(1) {
         ssize_t read = readSTDin(buffer);
@@ -75,22 +76,23 @@ int main(int argc, char* argv[]) {
                 exit(EXIT_FAILURE);
                 break;
             case 0:  // Fork Success
-                split(buffer,toTerminal);
                 writeSTDout("enseash % ");
-                //exitValue = execlp(buffer, buffer, (char*) NULL);
-                exitValue = execvp(toTerminal[0],toTerminal);
+                execlp(buffer, buffer, (char*) NULL);
                 writeSTDout("\n");
                 exit(EXIT_FAILURE);  // execlp only returns on failure
                 break;
             default:
+                clock_gettime(CLOCK_MONOTONIC, &start);
                 waitpid(pid, &status, 0);
+                clock_gettime(CLOCK_MONOTONIC, &end);
+                deltaTimeMillis = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
                 if (WIFEXITED(status)) {
                     char toprint[100];
-                    sprintf(toprint, "enseash [exit:%d] %% ", WEXITSTATUS(status));
+                    sprintf(toprint, "enseash [exit:%d][time:%dms] %% ", WEXITSTATUS(status), deltaTimeMillis);
                     writeSTDout(toprint);
                 } else if (WIFSIGNALED(status)) {
                     char toprint[100];
-                    sprintf(toprint, "enseash [sign:%d] %% ", WTERMSIG(status));
+                    sprintf(toprint, "enseash [sign:%d][time:%dms] %% ", WTERMSIG(status), deltaTimeMillis);
                     writeSTDout(toprint);
                 }
                 break;
