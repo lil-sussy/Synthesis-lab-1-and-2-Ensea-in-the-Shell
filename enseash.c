@@ -75,9 +75,9 @@ int main(int argc, char* argv[]) {
                 exit(EXIT_FAILURE);
                 break;
             case 0:  // Fork Success
-                writeSTDout("enseash % ");
+
                 execlp(buffer, buffer, (char*) NULL);
-                writeSTDout("\n");
+                writeSTDout("Command not found\n");
                 exit(EXIT_FAILURE);  // execlp only returns on failure
                 break;
             default:
