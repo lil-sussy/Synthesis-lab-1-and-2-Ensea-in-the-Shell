@@ -7,12 +7,11 @@
 #include <stdbool.h> 
 #include <time.h>
 #include <sys/wait.h>
-#include <linux/time.h>
 
 #define MESSAGE "Welcome to ENSEA Tiny Shell.\nType 'exit' to quit.\n"
 #define TERMINAL_TAG "enseash % "
-#define BUFFER_LEN 100
-#define TOKEN_LEN 20
+#define BUFFER_LEN 1000
+#define TOKEN_LEN 100
 #define INT2POINTER(a) ((char*)(intptr_t)(a))
 
 //function to print a error mesasge. Made for legibility of the error
@@ -43,30 +42,44 @@ void split(char* in, char** out){
     char delimiter[] = " ";
     char* tokenPointer;
     int counter = 0;
+    char* inCopy = malloc(100);
+    strcpy(inCopy, in);
 
-    tokenPointer = strtok(in,delimiter);
-    while(tokenPointer != NULL){
+    tokenPointer = strtok(inCopy, delimiter);
+    while(tokenPointer != NULL) {
         out[counter] = tokenPointer;
         counter++;
-        tokenPointer = strtok(NULL,delimiter);
+        tokenPointer = strtok(NULL, delimiter);
     }
     out[counter] = NULL;
-
-
 }
 
-int main(int argc, char* argv[], __attribute__((__attribute_warn_unused_result__))) {
+void displayStatus(int status, struct timespec start, struct timespec end) {
+    double deltaTimeMillis;
+    deltaTimeMillis = (end.tv_sec - start.tv_sec) * 1000.0;
+    deltaTimeMillis += (end.tv_nsec - start.tv_nsec) / 1000000.0;
+    if (WIFEXITED(status)) {
+        char toprint[100];
+        sprintf(toprint, "enseash [exit:%d|%.2fms] %% ", WEXITSTATUS(status), deltaTimeMillis);
+        writeSTDout(toprint);
+    } else if (WIFSIGNALED(status)) {
+        char toprint[100];
+        sprintf(toprint, "enseash [sign:%d|%.2fms] %% ", WTERMSIG(status), deltaTimeMillis);
+        writeSTDout(toprint);
+    }
+}
+
+int main(int argc, char* argv[]) {
     struct timespec start, end;
     char buffer[BUFFER_LEN];                        //the buffer of the mainloop
     pid_t pid;
     int status;                                     //status for the wait
-    int deltaTimeMillis;
-    char** tokens;
+    char** tokens[TOKEN_LEN];
 
     writeSTDout("enseash % ");
     while(1) {
         ssize_t read = readSTDin(buffer);
-
+        split(buffer, tokens);
         //compare if it is one especial case, to exit as an example.
         if ((strcmp("exit", buffer) == 0) || read == 0){
             writeSTDout("Bye\n");
@@ -80,8 +93,6 @@ int main(int argc, char* argv[], __attribute__((__attribute_warn_unused_result__
                 exit(EXIT_FAILURE);
                 break;
             case 0:  // Fork Success
-
-                split(buffer, tokens);
                 execvp(tokens[0], tokens);
                 writeSTDout("Command not found\n");
                 exit(EXIT_FAILURE);  // execlp only returns on failure
@@ -90,17 +101,7 @@ int main(int argc, char* argv[], __attribute__((__attribute_warn_unused_result__
                 clock_gettime(CLOCK_MONOTONIC, &start);
                 waitpid(pid, &status, 0);
                 clock_gettime(CLOCK_MONOTONIC, &end);
-                deltaTimeMillis = (end.tv_sec - start.tv_sec) * 1000.0;
-                deltaTimeMillis += (end.tv_nsec - start.tv_nsec) / 1000000.0;
-                if (WIFEXITED(status)) {
-                    char toprint[100];
-                    sprintf(toprint, "enseash [exit:%d|%.2fms] %% ", WEXITSTATUS(status), deltaTimeMillis);
-                    writeSTDout(toprint);
-                } else if (WIFSIGNALED(status)) {
-                    char toprint[100];
-                    sprintf(toprint, "enseash [sign:%d|%.2fms] %% ", WTERMSIG(status), deltaTimeMillis);
-                    writeSTDout(toprint);
-                }
+                displayStatus(status, start, end);
                 break;
         }
     }
