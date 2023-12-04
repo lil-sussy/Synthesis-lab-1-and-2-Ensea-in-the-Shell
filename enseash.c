@@ -7,6 +7,7 @@
 #include <stdbool.h> 
 #include <time.h>
 #include <sys/wait.h>
+#include <linux/time.h>
 
 #define MESSAGE "Welcome to ENSEA Tiny Shell.\nType 'exit' to quit.\n"
 #define TERMINAL_TAG "enseash % "
@@ -45,20 +46,24 @@ void split(char* in, char** out){
 
     tokenPointer = strtok(in,delimiter);
     while(tokenPointer != NULL){
-        strcpy(out[counter], tokenPointer);
+        out[counter] = tokenPointer;
         counter++;
         tokenPointer = strtok(NULL,delimiter);
     }
+    out[counter] = NULL;
+
 
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[], __attribute__((__attribute_warn_unused_result__))) {
     struct timespec start, end;
     double elapsed;
     char buffer[BUFFER_LEN];                        //the buffer of the mainloop
     pid_t pid;
     int status;                                     //status for the wait
     int deltaTimeMillis;
+    char** tokens;
+
     writeSTDout("enseash % ");
     while(1) {
         ssize_t read = readSTDin(buffer);
@@ -77,7 +82,8 @@ int main(int argc, char* argv[]) {
                 break;
             case 0:  // Fork Success
                 writeSTDout("enseash % ");
-                execlp(buffer, buffer, (char*) NULL);
+                split(buffer,tokens);
+                execvp(tokens[0],tokens);
                 writeSTDout("\n");
                 exit(EXIT_FAILURE);  // execlp only returns on failure
                 break;
