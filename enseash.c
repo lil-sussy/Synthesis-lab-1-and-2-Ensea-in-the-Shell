@@ -47,54 +47,43 @@ void split(char* in, char** out){
 }
 
 int main(int argc, char* argv[]) {
-    bool control = true;
     char buffer[BUFFER_LEN];
-    char** toTerminal;
-    int bufferReaded;
+    pid_t pid;
+    int exitValue;
     int status;
-    int exit;
-    bool isReturn;
-    do {
-        writeSTDout(TERMINAL_TAG);
+    writeSTDout("enseash % ");
+    while(1) {
         ssize_t read = readSTDin(buffer);
         if ((strcmp("exit", buffer) == 0) || read == 0){
             writeSTDout("Bye\n");
             exit(EXIT_SUCCESS);
-        }else {
-            //split(buffer, toTerminal);
-            pid_t pid;
-            pid = fork();
-            if (pid > 0){
-                wait(&status);
-                if(WIFEXITED(status)) {
-                    exit = WEXITSTATUS(status);
-                    isReturn = 1;
-                }
-                else if((WIFSIGNALED( status ))){
-                    exit = WTERMSIG(status);
-                    isReturn = 0;
-                }
-            }
-            else if (pid == 0){
-                int exitValue = execlp(buffer, buffer, (char*)NULL);
-                if (exitValue == -1) {
-                    writeSTDout("enseash ");
-                    writeSTDout("[exit:-1]");
-                    writeSTDout(" % ");
-                    exit(EXIT_FAILURE);
-                } else {
-                    writeSTDout("enseash ");
-                    char idk[10];
-                    sprintf(idk, "[exit:%d]", exitValue);
-                    writeSTDout(idk);
-                    writeSTDout(" % ");
-                    exit(EXIT_FAILURE);
-                }
-            } else if(pid == -1){
-                perror("Command failed\n");
-                exit(EXIT_FAILURE);
-            }
+            break;
         }
-    } while(control);
-    exit(EXIT_FAILURE);
+        pid = fork();
+        switch(pid) {
+            case -1:  // Fork fail
+                perror("Couldn't fork");
+                exit(EXIT_FAILURE);
+                break;
+            case 0:  // Fork Success
+                writeSTDout("enseash % ");
+                exitValue = execlp(buffer, buffer, (char*) NULL);
+                writeSTDout("\n");
+                exit(EXIT_FAILURE);  // execlp only returns on failure
+                break;
+            default:
+                waitpid(pid, &status, 0);
+                if (WIFEXITED(status)) {
+                    char toprint[100];
+                    sprintf(toprint, "enseash [exit:%d] %% ", WEXITSTATUS(status));
+                    writeSTDout(toprint);
+                } else if (WIFSIGNALED(status)) {
+                    char toprint[100];
+                    sprintf(toprint, "enseash [sign:%d] %% ", WTERMSIG(status));
+                    writeSTDout(toprint);
+                }
+                break;
+        }
+    }
+    return EXIT_FAILURE;
 }
