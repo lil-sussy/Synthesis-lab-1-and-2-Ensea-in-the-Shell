@@ -53,10 +53,11 @@ void split(char* in, char** out){
 }
 
 int main(int argc, char* argv[]) {
-    char buffer[BUFFER_LEN];                       //the buffer of the mainloop
+    char buffer[BUFFER_LEN];                        //the buffer of the mainloop
     pid_t pid;
-    int exitValue;                                    //the value of the return of signal
+    int exitValue;                                  //the value of the return of signal
     int status;                                     //status for the wait
+    char** toTerminal;                              //buffer tokenized
     writeSTDout("enseash % ");
     while(1) {
         ssize_t read = readSTDin(buffer);
@@ -74,8 +75,10 @@ int main(int argc, char* argv[]) {
                 exit(EXIT_FAILURE);
                 break;
             case 0:  // Fork Success
+                split(buffer,toTerminal);
                 writeSTDout("enseash % ");
-                exitValue = execlp(buffer, buffer, (char*) NULL);
+                //exitValue = execlp(buffer, buffer, (char*) NULL);
+                exitValue = execvp(toTerminal[0],toTerminal);
                 writeSTDout("\n");
                 exit(EXIT_FAILURE);  // execlp only returns on failure
                 break;
