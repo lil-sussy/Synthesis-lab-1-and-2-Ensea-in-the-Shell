@@ -1,5 +1,0 @@
-LICENSE
-README.md
-enseash
-enseash.c
-file.txt

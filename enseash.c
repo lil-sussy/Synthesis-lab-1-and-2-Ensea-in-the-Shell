@@ -74,29 +74,12 @@ int main(int argc, char* argv[]) {
     char buffer[BUFFER_LEN];                        //the buffer of the mainloop
     pid_t pid;
     int status;                                     //status for the wait
-    char* args[TOKEN_LEN];
+    char** tokens[TOKEN_LEN];
 
     writeSTDout("enseash % ");
     while(1) {
         ssize_t read = readSTDin(buffer);
-        split(buffer, args);
-        int inRedirect = -1;
-        int outRedirect = -1;
-        char* inputFile = NULL;
-        char* outputFile = NULL;
-
-        // Parse for redirections
-        for (int i = 0; args[i] != NULL; i++) {
-            if (strcmp(args[i], "<") == 0) {
-                args[i] = NULL;
-                inputFile = args[i + 1];
-                inRedirect = open(inputFile, O_RDONLY);
-            } else if (strcmp(args[i], ">") == 0) {
-                args[i] = NULL;
-                outputFile = args[i + 1];
-                outRedirect = open(outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            }
-        }
+        split(buffer, tokens);
         //compare if it is one especial case, to exit as an example.
         if ((strcmp("exit", buffer) == 0) || read == 0){
             writeSTDout("Bye\n");
@@ -110,18 +93,7 @@ int main(int argc, char* argv[]) {
                 exit(EXIT_FAILURE);
                 break;
             case 0:  // Fork Success
-                // Handle input redirection
-                if (inRedirect != -1) {
-                    dup2(inRedirect, STDIN_FILENO);
-                    close(inRedirect);
-                }
-
-                // Handle output redirection
-                if (outRedirect != -1) {
-                    dup2(outRedirect, STDOUT_FILENO);
-                    close(outRedirect);
-                }
-                execvp(args[0], args);
+                execvp(tokens[0], tokens);
                 writeSTDout("Command not found\n");
                 exit(EXIT_FAILURE);  // execlp only returns on failure
                 break;
