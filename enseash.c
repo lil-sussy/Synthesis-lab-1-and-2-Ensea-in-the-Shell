@@ -14,17 +14,20 @@
 #define TOKEN_LEN 20
 #define INT2POINTER(a) ((char*)(intptr_t)(a))
 
+//function to print a error mesasge. Made for legibility of the error
 void exitWithError(char* message) {
     perror(message);
     exit(EXIT_FAILURE);
 }
 
+//function to print in stdout
 void writeSTDout(char* message) {
     if (write(STDOUT_FILENO, message, strlen(message)) == -1) {
         exitWithError("stdout: ");
     }
 }
 
+//function to read form stdin
 ssize_t readSTDin(char* buffer) {
     ssize_t readed;
     if ((readed = read(STDIN_FILENO, buffer, BUFFER_LEN)) == -1) {
@@ -34,7 +37,8 @@ ssize_t readSTDin(char* buffer) {
     return readed;
 }
 
-void split(char* in, char out[TOKEN_LEN][BUFFER_LEN]){
+//function to split a string in a token vector by spaces
+void split(char* in, char** out){
     char delimiter[] = " ";
     char* tokenPointer;
     int counter = 0;
@@ -51,13 +55,13 @@ void split(char* in, char out[TOKEN_LEN][BUFFER_LEN]){
 int main(int argc, char* argv[]) {
 
     //Variables
-    bool control = true;            //control of the mainloop
-    char buffer[BUFFER_LEN];        //the buffer of the mainloop
-    char** toTerminal;              //the expresion that goes to terminal
-    int status;                     //status for the wait
-    int exit;                       //the value of the return of signal
-    bool isReturn;                  //1 if return, 0 if signal
-
+    bool control = true;                            //control of the mainloop
+    char buffer[BUFFER_LEN];                        //the buffer of the mainloop
+    char** toTerminal;                              //the expresion that goes to terminal
+    int status;                                     //status for the wait
+    int exitval;                                    //the value of the return of signal
+    bool isReturn;                                  //1 if return, 0 if signal
+    
     //mainloop
     do {
         //write the tag and wait for input
@@ -80,11 +84,11 @@ int main(int argc, char* argv[]) {
             if (pid > 0){
                 wait(&status);
                 if(WIFEXITED(status)) {
-                    exit = WEXITSTATUS(status);
+                    exitval = WEXITSTATUS(status);
                     isReturn = 1;
                 }
                 else if((WIFSIGNALED( status ))){
-                    exit = WTERMSIG(status);
+                    exitval = WTERMSIG(status);
                     isReturn = 0;
                 }
             }
@@ -92,7 +96,7 @@ int main(int argc, char* argv[]) {
             //buffer
             else if (pid == 0){
                 //int exitValue = execlp(buffer, buffer, (char*)NULL);
-                int exitValue = execvp(buffer, toTerminal);
+                int exitValue = execvp(toTerminal[0], toTerminal);
                 if (exitValue == -1) {
                     writeSTDout("enseash ");
                     writeSTDout("[exit:-1]");
