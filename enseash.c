@@ -14,20 +14,17 @@
 #define TOKEN_LEN 100
 #define INT2POINTER(a) ((char*)(intptr_t)(a))
 
-//function to print a error mesasge. Made for legibility of the error
 void exitWithError(char* message) {
     perror(message);
     exit(EXIT_FAILURE);
 }
 
-//function to print in stdout
 void writeSTDout(char* message) {
     if (write(STDOUT_FILENO, message, strlen(message)) == -1) {
         exitWithError("stdout: ");
     }
 }
 
-//function to read form stdin
 ssize_t readSTDin(char* buffer) {
     ssize_t readed;
     if ((readed = read(STDIN_FILENO, buffer, BUFFER_LEN)) == -1) {
@@ -37,7 +34,6 @@ ssize_t readSTDin(char* buffer) {
     return readed;
 }
 
-//function to split a string in a token vector by spaces
 void split(char* in, char** out){
     char delimiter[] = " ";
     char* tokenPointer;
@@ -80,7 +76,6 @@ int main(int argc, char* argv[]) {
     while(1) {
         ssize_t read = readSTDin(buffer);
         split(buffer, tokens);
-        //compare if it is one especial case, to exit as an example.
         if ((strcmp("exit", buffer) == 0) || read == 0){
             writeSTDout("Bye\n");
             exit(EXIT_SUCCESS);
