@@ -11,19 +11,23 @@
 #define MESSAGE "Welcome to ENSEA Tiny Shell.\nType 'exit' to quit.\n"
 #define TERMINAL_TAG "enseash % "
 #define BUFFER_LEN 100
+#define TOKEN_LEN 20
 #define INT2POINTER(a) ((char*)(intptr_t)(a))
 
+//function to print a error mesasge. Made for legibility of the error
 void exitWithError(char* message) {
     perror(message);
     exit(EXIT_FAILURE);
 }
 
+//function to print in stdout
 void writeSTDout(char* message) {
     if (write(STDOUT_FILENO, message, strlen(message)) == -1) {
         exitWithError("stdout: ");
     }
 }
 
+//function to read form stdin
 ssize_t readSTDin(char* buffer) {
     ssize_t readed;
     if ((readed = read(STDIN_FILENO, buffer, BUFFER_LEN)) == -1) {
@@ -33,27 +37,31 @@ ssize_t readSTDin(char* buffer) {
     return readed;
 }
 
+//function to split a string in a token vector by spaces
 void split(char* in, char** out){
-    char readed;
-    int spaceCounter = 0;
-    char word[100];
-    char counter = 0;
-    do{
-        readed = in[counter];
-        //if (readed == ' '){
+    char delimiter[] = " ";
+    char* tokenPointer;
+    int counter = 0;
 
-        //}
-    } while (readed != '\0');
+    tokenPointer = strtok(in,delimiter);
+    while(tokenPointer != NULL){
+        strcpy(out[counter], tokenPointer);
+        counter++;
+        tokenPointer = strtok(NULL,delimiter);
+    }
+
 }
 
 int main(int argc, char* argv[]) {
-    char buffer[BUFFER_LEN];
+    char buffer[BUFFER_LEN];                       //the buffer of the mainloop
     pid_t pid;
-    int exitValue;
-    int status;
+    int exitValue;                                    //the value of the return of signal
+    int status;                                     //status for the wait
     writeSTDout("enseash % ");
     while(1) {
         ssize_t read = readSTDin(buffer);
+
+        //compare if it is one especial case, to exit as an example.
         if ((strcmp("exit", buffer) == 0) || read == 0){
             writeSTDout("Bye\n");
             exit(EXIT_SUCCESS);
